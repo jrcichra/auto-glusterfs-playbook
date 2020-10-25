@@ -1,0 +1,16 @@
+---
+# init tasks main
+
+- name: "Install glusterfs-common on clients"
+  apt:
+    name: glusterfs-common
+    state: present
+    update_cache: yes
+  become: yes
+- name: "Unmount /mnt"
+  command: "umount /mnt"
+  become: yes
+  ignore_errors: yes
+- name: "Connect to gluster servers through glusterfs"
+  command: "mount -t glusterfs {{ server_ips.split(',')[0] }}:/gdata1 /mnt"
+  become: yes

@@ -1,3 +1,5 @@
+[clients]
 client
-server-1
-server-2
+[servers]
+server-1 drives=/dev/vdb
+server-2 drives=/dev/vdb
