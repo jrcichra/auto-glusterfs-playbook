@@ -39,5 +39,5 @@
     rebalance: yes
     cluster:
       "{{ server_ips.split(',') }}"
-  run_once: true
+  run_once: false
   become: yes

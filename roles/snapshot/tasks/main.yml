@@ -1,0 +1,6 @@
+---
+# init tasks main
+
+- name: "Manual ZFS snapshot of gluster"
+  command: "zfs snap gpool/bricks@manual_{{ ansible_date_time.epoch }} "
+  become: yes
