@@ -1,4 +1,7 @@
 ---
 # init tasks main
 
-
+- name: "Install glusterfs"
+  apt:
+    name: glusterfs-server
+    state: present
