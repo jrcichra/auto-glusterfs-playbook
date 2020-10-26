@@ -21,23 +21,26 @@
     update_cache: yes
   become: yes
 
-- name: "Create zpools with zfs (starting off with striped)"
-  command: "zpool create -O compression=lz4 gpool {{ ' '.join(drives.split(',')) }} "
+- name: "Create zpools with zfs"
+  command: "zpool create -O compression=lz4 gpool {{ raid == 'striped' ? '' : raid }} {{ ' '.join(drives) }} "
   ignore_errors: yes
   become: yes
 
-- name: "Create dataset to hold bricks"
-  command: "zfs create gpool/bricks" 
+- name: "Create dataset to hold all bricks"
+  command: "zfs create gpool/bricks"
   ignore_errors: yes
   become: yes
 
-- name: "Create/Start gluster volume"
-  gluster.gluster.gluster_volume:
-    state: started
-    name: gdata1
-    bricks: /gpool/bricks/brick1
-    rebalance: yes
-    cluster:
-      "{{ server_ips.split(',') }}"
-  run_once: false
+- name: "Gather current volumes"
+  command: "gluster volume list"
   become: yes
+  register: volumes
+
+- name: "Gather current peers"
+  command: "gluster pool list | grep -v 'UUID' | awk '{print $2}'"
+  become: yes
+  register: peers
+
+- name: "Gather current bricks"
+  command: "ls /gpool/bricks"
+  register: bricks

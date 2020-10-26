@@ -1,0 +1,20 @@
+gluster:
+  volumes:
+    - name: striper
+      type: stripe
+      bricks:
+        - server-1:
+            name: striper1
+            size: 10g
+        - server-2:
+            name: striper2
+            size: 5g
+    - name: replicer
+      type: replica
+      bricks:
+        - server-2:
+            name: replicer2
+            size: 2g
+        - server-3:
+            name: replicer3
+            size: 2g

@@ -1,4 +1,4 @@
 ansible-playbook \
 snapshot.yml \
--i inventory \
+-i inventory.yaml \
 --user vagrant \

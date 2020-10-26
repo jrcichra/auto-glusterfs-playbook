@@ -1,0 +1,19 @@
+all:
+  children:
+    clients:
+      hosts:
+        client:
+    servers:
+      hosts:
+        server-1:
+          raid: striped
+          drives:
+            - /dev/vdb
+        server-2:
+          raid: striped
+          drives:
+            - /dev/vdb
+        server-3:
+          raid: striped
+          drives:
+            - /dev/vdb
