@@ -4,8 +4,8 @@
     server_ips: "{{ groups['servers'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(',') }}"
   roles:
     - { role: servers }
-- hosts: clients
-  vars:
-    server_ips: "{{ groups['servers'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(',') }}"
-  roles:
-    - { role: clients }
+# - hosts: clients
+#   vars:
+#     server_ips: "{{ groups['servers'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(',') }}"
+#   roles:
+#     - { role: clients }

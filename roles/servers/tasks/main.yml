@@ -6,6 +6,17 @@
     file: config.yaml
     name: config
 
+- name: Update /etc/hosts
+  become: yes
+  lineinfile:
+    path: "/etc/hosts"
+    regexp: ".*\t{{ hostvars[item]['ansible_hostname']}}\t{{ hostvars[item]['ansible_hostname']}}"
+    line: "{{ hostvars[item]['ansible_env'].SSH_CONNECTION.split(' ')[2] }}\t{{ hostvars[item]['ansible_hostname']}}\t{{ hostvars[item]['ansible_hostname']}}"
+    state: present
+    backup: yes
+  when: ansible_hostname != item or ansible_hostname == item
+  with_items: "{{groups['servers']}}"
+
 - name: Gather zpool
   stat:
     path: /gpool
@@ -20,14 +31,16 @@
   command: gluster volume list
   become: yes
   register: current_volumes
+  when: pile_exists.stat.exists == true
 
 - name: Gather current peers
   shell: gluster pool list | grep -v 'UUID' | awk '{print $2}'
   become: yes
   register: current_peers
+  when: pile_exists.stat.exists == true
 
 - name: Gather current bricks
-  command: ls /gpool/pile
+  shell: ls /gpool/pile || true
   register: current_bricks
 
 - name: Install glusterfs-server
@@ -67,3 +80,8 @@
   with_subelements:
     - "{{ config.gluster.volumes }}"
     - bricks
+- name: Peer glusterfs servers
+  command: gluster peer probe {{ item }}
+  become: yes
+  when: inventory_hostname != item
+  loop: "{{ ansible_play_hosts }}"
