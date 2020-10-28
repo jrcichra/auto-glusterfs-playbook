@@ -1,0 +1,31 @@
+---
+# init tasks main
+
+- name: Gather current volumes
+  command: gluster volume list
+  become: yes
+  register: current_volumes
+
+- name: Show current volumes
+  debug:
+    var: current_volumes.stdout_lines
+    verbosity: 0
+
+- name: Gather current peers
+  shell: gluster pool list | grep -v 'UUID' | awk '{print $2}'
+  become: yes
+  register: current_peers
+
+- name: Show current peers
+  debug:
+    var: current_peers.stdout_lines
+    verbosity: 0
+
+- name: Gather current bricks
+  command: ls /gpool/pile
+  register: current_bricks
+
+- name: Show current bricks
+  debug:
+    var: current_bricks.stdout_lines
+    verbosity: 0

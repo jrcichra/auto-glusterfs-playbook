@@ -1,46 +1,69 @@
 ---
 # init tasks main
 
-- name: "Install glusterfs-server"
+- name: Import config.yaml
+  include_vars:
+    file: config.yaml
+    name: config
+
+- name: Gather zpool
+  stat:
+    path: /gpool
+  register: zpool_exists
+
+- name: Gather brick pile
+  stat:
+    path: /gpool/pile
+  register: pile_exists
+
+- name: Gather current volumes
+  command: gluster volume list
+  become: yes
+  register: current_volumes
+
+- name: Gather current peers
+  shell: gluster pool list | grep -v 'UUID' | awk '{print $2}'
+  become: yes
+  register: current_peers
+
+- name: Gather current bricks
+  command: ls /gpool/pile
+  register: current_bricks
+
+- name: Install glusterfs-server
   apt:
     name: glusterfs-server
     state: present
     update_cache: yes
   become: yes
 
-- name: "Make sure glusterd is running"
+- name: Make sure glusterd is running
   systemd:
     state: started
     name: glusterd
   become: yes
 
-- name: "Install zfs"
+- name: Install zfs
   apt:
     name: zfs-dkms
     state: present
     update_cache: yes
   become: yes
 
-- name: "Create zpools with zfs"
-  command: "zpool create -O compression=lz4 gpool {{ raid == 'striped' ? '' : raid }} {{ ' '.join(drives) }} "
-  ignore_errors: yes
+- name: Create zpools with zfs
+  command: zpool create -O compression=lz4 gpool {{ '' if raid == 'striped' else raid }} {{ ' '.join(drives) }}
+  when: zpool_exists.stat.exists == false
   become: yes
 
-- name: "Create dataset to hold all bricks"
-  command: "zfs create gpool/bricks"
-  ignore_errors: yes
+- name: Create new brick pile (where all the bricks are stored)
+  command: zfs create gpool/pile
   become: yes
+  when: pile_exists.stat.exists == false
 
-- name: "Gather current volumes"
-  command: "gluster volume list"
+- name: Create new bricks in zfs
+  command: zfs create gpool/pile/{{ item.1[inventory_hostname].name }}
   become: yes
-  register: volumes
-
-- name: "Gather current peers"
-  command: "gluster pool list | grep -v 'UUID' | awk '{print $2}'"
-  become: yes
-  register: peers
-
-- name: "Gather current bricks"
-  command: "ls /gpool/bricks"
-  register: bricks
+  when: inventory_hostname in item.1 and item.1[inventory_hostname].name not in current_bricks.stdout_lines
+  with_subelements:
+    - "{{ config.gluster.volumes }}"
+    - bricks

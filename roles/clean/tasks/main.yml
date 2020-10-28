@@ -1,0 +1,16 @@
+---
+  # init tasks 
+  # only delete when we're developing with vagrant
+  
+  # - name: Purge glusterfs
+  #   apt:
+  #     name: glusterfs-server
+  #     state: absent
+  #     purge: yes
+  #   become: yes
+  #   when: ansible_user_id == 'vagrant'
+
+  - name: Delete the zpool
+    command: zpool destroy gpool
+    when: ansible_user_id == 'vagrant'
+    become: yes

@@ -5,16 +5,16 @@ gluster:
       bricks:
         - server-1:
             name: striper1
-            size: 10g
+            size: 10g #ignored for now
         - server-2:
             name: striper2
-            size: 5g
+            size: 5g #ignored for now
     - name: replicer
       type: replica
       bricks:
         - server-2:
             name: replicer2
-            size: 2g
+            size: 2g #ignored for now
         - server-3:
             name: replicer3
-            size: 2g
+            size: 2g  #ignored for now
