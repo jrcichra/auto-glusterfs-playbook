@@ -11,6 +11,7 @@ gluster:
             size: 5g #ignored for now
     - name: replicer
       type: replica
+      count: 2
       bricks:
         - server-2:
             name: replicer2
