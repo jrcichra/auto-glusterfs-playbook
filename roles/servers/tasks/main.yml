@@ -87,8 +87,8 @@
   when: inventory_hostname != item # TODO: don't repeer: and inventory_hostname not in current_peers.stdout_lines
   loop: "{{ ansible_play_hosts }}"
 
-# - name: Create new gluster volumes
-#   command: gluster volume create {{ item.name }} {{ item.type }} {{ '' if 'count' not in item else item.count }} {{ f'{inventory_hostname}:/gpool/pile/'.join(item.bricks) }}
-#   become: yes
-#   delegate_to: "{{groups['servers'][0]}}"
-#   loop: "{{ config.gluster.volumes }}"
+- name: Create new gluster volumes
+  command: gluster volume create {{ item.name }} {{ '' if item.type == 'distributed' else item.type }} {{ '' if 'count' not in item else item.count }} {{ ':/gpool/pile/{} '.format(item.bricks[inventory_hostname].name).join(item[inventory_hostname]) }}
+  become: yes
+  delegate_to: "{{groups['servers'][0]}}"
+  loop: "{{ config.gluster.volumes }}"

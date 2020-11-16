@@ -1,7 +1,7 @@
 gluster:
   volumes:
-    - name: striper
-      type: stripe
+    - name: distribute
+      type: distributed
       bricks:
         - server-1:
             name: striper1
