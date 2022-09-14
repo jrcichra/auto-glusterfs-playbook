@@ -30,6 +30,7 @@
 - name: Gather current volumes
   command: gluster volume list
   become: yes
+  ignore_errors: yes
   register: current_volumes
   when: pile_exists.stat.exists == true
 
@@ -42,6 +43,13 @@
 - name: Gather current bricks
   shell: ls /gpool/pile || true
   register: current_bricks
+
+- name: Install python3
+  apt:
+    name: python3
+    state: present
+    update_cache: yes
+  become: yes
 
 - name: Install glusterfs-server
   apt:
@@ -87,8 +95,20 @@
   when: inventory_hostname != item # TODO: don't repeer: and inventory_hostname not in current_peers.stdout_lines
   loop: "{{ ansible_play_hosts }}"
 
-- name: Create new gluster volumes
-  command: gluster volume create {{ item.name }} {{ '' if item.type == 'distributed' else item.type }} {{ '' if 'count' not in item else item.count }} {{ ':/gpool/pile/{} '.format(item.bricks[inventory_hostname].name).join(item[inventory_hostname]) }}
-  become: yes
-  delegate_to: "{{groups['servers'][0]}}"
+- name: Generate gluster volume names
+  shell: python3 -c "print(f'{x}:/gpool/pile/{y} ' for x in {{ item.bricks }} for y in [ d['name'] for d in {{ item.bricks }} ] ) "
+  register: gluster_vol_names
+  when: ansible_hostname == groups['servers'][0]
   loop: "{{ config.gluster.volumes }}"
+
+- name: Print stuff
+  debug:
+    msg: "{{ gluster_vol_names }} "
+
+- name: Create new gluster volumes
+  command: gluster volume create {{ item.0.name }} {{ '' if item.0.type == 'distributed' else item.0.type }} {{ '' if 'count' not in item.0 else item.0.count }} {{ gluster_vol_names }}
+  become: yes
+  when: ansible_hostname == groups['servers'][0]
+  with_subelements:
+    - "{{ config.gluster.volumes }}"
+    - bricks
